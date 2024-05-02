@@ -1,6 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-
-namespace Morris
+﻿namespace Morris
 {
     public enum GameMode
     {
@@ -44,10 +42,19 @@ namespace Morris
 
         private void GameForm_Load(object sender, EventArgs e)
         {
-            // Center the form on the screen
-            this.StartPosition = FormStartPosition.Manual;
-            this.Location = new Point((Screen.PrimaryScreen.Bounds.Width - this.Width) / 2,
-                                      (Screen.PrimaryScreen.Bounds.Height - this.Height) / 2);
+            CenterForm();
+        }
+
+        private void CenterForm()
+        {
+            StartPosition = FormStartPosition.Manual;
+            Location = new Point((Screen.PrimaryScreen.Bounds.Width - Width) / 2, (Screen.PrimaryScreen.Bounds.Height - Height) / 2);
+        }
+
+        private void DrawSquares(Graphics g, Pen pen, int x, int y, int size)
+        {
+            // Draw outer square
+            g.DrawRectangle(pen, x, y, size, size);
         }
 
         private void BoardPictureBox_Paint(object sender, PaintEventArgs e)
@@ -136,7 +143,7 @@ namespace Morris
                     pointPictureBox.Location = new Point(x - intersectionSize / 2, y - intersectionSize / 2);
                     Controls.Add(pointPictureBox);
                     pointPictureBox.BringToFront(); // Ensure pointPictureBox is drawn above other controls
-                    pointPictureBox.Click += BoardPictureBox_Click;
+                    pointPictureBox.Click += PointPictureBox_Click;
                     g.FillEllipse(brush, x - intersectionSize / 2, y - intersectionSize / 2, intersectionSize, intersectionSize);
                 }
             }
@@ -157,6 +164,10 @@ namespace Morris
             // Calculate the vertical center position for the pieces
             int centerY = (BoardHeight - 9 * pieceSpacing) / 2;
 
+            string projectDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
+            string whitePieceImagePath = Path.Combine(projectDirectory, "Pieces", "WhitePiece.jpg");
+            string blackPieceImagePath = Path.Combine(projectDirectory, "Pieces", "BlackPiece.jpg");
+
             // Draw white pieces
             for (int i = 0; i < 9; i++)
             {
@@ -170,7 +181,6 @@ namespace Morris
                 whitePiecePictureBox.SizeMode = PictureBoxSizeMode.StretchImage;
                 whitePiecePictureBox.Click += PiecePictureBox_Click;
 
-                string whitePieceImagePath = @"D:\Visual Studio Saves\9_Men_Morris\Morris\Morris\Pieces\WhitePiece.jpg"; // Update with your image path
                 if (File.Exists(whitePieceImagePath))
                 {
                     Image whitePieceImage = Image.FromFile(whitePieceImagePath);
@@ -198,8 +208,6 @@ namespace Morris
                 blackPiecePictureBox.SizeMode = PictureBoxSizeMode.StretchImage;
                 blackPiecePictureBox.Click += PiecePictureBox_Click;
 
-
-                string blackPieceImagePath = @"D:\Visual Studio Saves\9_Men_Morris\Morris\Morris\Pieces\BlackPiece.jpg"; // Update with your image path
                 if (File.Exists(blackPieceImagePath))
                 {
                     Image blackPieceImage = Image.FromFile(blackPieceImagePath);
@@ -216,29 +224,48 @@ namespace Morris
         }
 
 
-        private PictureBox selectedPiecePictureBox = null;
-        private PictureBox destinationPictureBox = null;
+        private PictureBox? selectedPiecePictureBox = null;
+        private PictureBox? destinationPictureBox = null;
 
         private void PiecePictureBox_Click(object sender, EventArgs e)
         {
-            selectedPiecePictureBox = sender as PictureBox;
+            if (destinationPictureBox == null)
+            {
+                selectedPiecePictureBox = sender as PictureBox;
+                destinationPictureBox = sender as PictureBox;
+            }
+            else
+            {
+                MovePiece();
+            }
         }
 
-        private void BoardPictureBox_Click(object sender, EventArgs e)
+        private void MovePiece()
+        {
+            selectedPiecePictureBox.Location = destinationPictureBox.Location;
+            selectedPiecePictureBox = destinationPictureBox;
+            selectedPiecePictureBox.BringToFront();
+            selectedPiecePictureBox = null;
+        }
+
+        private void PointPictureBox_Click(object sender, EventArgs e)
         {
             if (selectedPiecePictureBox != null)
             {
-                PictureBox destinationPictureBox = sender as PictureBox;
+                destinationPictureBox = sender as PictureBox;
+
                 if (destinationPictureBox != null)
                 {
-                    // Move the piece to the destination PictureBox
-                    destinationPictureBox.Image = selectedPiecePictureBox.Image;
+                    // Calculate the center point of the destination PictureBox
+                    int destinationX = destinationPictureBox.Location.X + destinationPictureBox.Width / 2;
+                    int destinationY = destinationPictureBox.Location.Y + destinationPictureBox.Height / 2;
+
+                    // Move the selected piece to the center of the destination PictureBox
+                    selectedPiecePictureBox.Location = new Point(destinationX - selectedPiecePictureBox.Width / 2, destinationY - selectedPiecePictureBox.Height / 2);
+
                     selectedPiecePictureBox.BringToFront();
 
-                    selectedPiecePictureBox.Image = null;
-
-                    // Reset selected piece
-                    selectedPiecePictureBox = null;
+                    destinationPictureBox = null;
                 }
             }
         }
