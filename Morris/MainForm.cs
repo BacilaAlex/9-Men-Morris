@@ -31,8 +31,7 @@ namespace Morris
         {
             // Center the form on the screen
             this.StartPosition = FormStartPosition.Manual;
-            this.Location = new Point((Screen.PrimaryScreen.Bounds.Width - this.Width) / 2,
-                                      (Screen.PrimaryScreen.Bounds.Height - this.Height) / 2);
+            this.Location = new Point((Screen.PrimaryScreen.Bounds.Width - Width) / 2, (Screen.PrimaryScreen.Bounds.Height - Height) / 2);
         }
     }
 }
